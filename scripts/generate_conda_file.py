@@ -86,6 +86,7 @@ PIP_BASE = {
 
 PIP_GPU = {"nvidia-ml-py3": "nvidia-ml-py3>=7.352.0"}
 PIP_PYSPARK = {"databricks-cli": "databricks-cli==0.8.6"}
+PIP_AZUREML_MODULES = {"azureml-designer-core": "azureml-designer-core==0.0.26"}
 
 PIP_DARWIN = {
     "nni": "nni==0.5.2.1.1",
@@ -115,6 +116,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--pyspark-version", help="provide specific version of PySpark to use"
+    )
+    parser.add_argument(
+        "--azureml-modules", action="store_true", help="run as azureml designer modules"
     )
     args = parser.parse_args()
 
@@ -154,6 +158,8 @@ if __name__ == "__main__":
     if args.gpu:
         conda_packages.update(CONDA_GPU)
         pip_packages.update(PIP_GPU)
+    if args.azureml_modules:
+        pip_packages.update(PIP_AZUREML_MODULES)
 
     # check for os platform support
     if platform == 'darwin':
