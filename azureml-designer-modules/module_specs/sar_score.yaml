@@ -1,0 +1,39 @@
+name: SAR Recommend
+# id is not needed in the future. will be calculated from name using uuid5.
+id: efd1af54-0d31-42e1-b3d5-ce3b7c538706
+version: 0.0.1
+category: Experimentation
+description: |
+    Python SAR Recommender
+    repo: https://github.com/Microsoft/Recommenders/tree/master/
+inputs:
+- name: SAR Model
+  type: ModelDirectory
+  description: The directory contains SAR model.
+  port: true
+- name: Users
+  type: DataFrameDirectory
+  description: Users to recommend for.
+  port: true
+- name: Item count to recommend
+  type: Int
+  description: Recommend this number of items.
+  min: 1
+  default: 10
+outputs:
+- name: Output
+  type: DataFrameDirectory
+  description: The recommended items.
+implementation:
+  container:
+    conda: reco_base.yaml
+    command: [
+      python,
+      azureml-designer-modules/entries/sar_score.py
+    ]
+    args: [
+      --model, {inputPath: SAR Model},
+      --users, {inputValue: Users},
+      --item-count-to-recommend, {inputValue: Item count to recommend},
+      --output, {inputValue: Output},
+    ]
