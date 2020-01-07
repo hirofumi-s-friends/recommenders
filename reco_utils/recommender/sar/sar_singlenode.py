@@ -369,8 +369,7 @@ class SARSingleNode:
         # convert item ids to indices
         items[self.col_item] = items[self.col_item].map(self.item2index)
         if any(items.isna()):
-            logger.warning("Items found in test not seen during training, new items won't be considered as "
-                           "seed item of recommendations.")
+            logger.warning("Found unseen items, new items won't be considered as seed item of recommendations.")
             items = items.dropna()
 
         item_ids = items[self.col_item].astype(int)
@@ -503,7 +502,7 @@ class SARSingleNode:
         nans = np.isnan(item_ids)
         if any(nans):
             logger.warning(
-                "Items found in test not seen during training, new items will have score of 0"
+                "Found unseen items, new items will have score of 0"
             )
             test_scores = np.append(test_scores, np.zeros((test_scores.shape[0], 1)), axis=1)
             item_ids[nans] = self.n_items
