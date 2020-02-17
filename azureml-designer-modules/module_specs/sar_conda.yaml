@@ -4,7 +4,7 @@ channels:
 dependencies:
 - python=3.7
 - pip:
-  - azureml-designer-core==0.0.26.*
+  - azureml-designer-core==0.0.28.*
   - azureml-defaults==1.0.83
   - azureml-designer-classic-modules==0.0.110
   - joblib==0.14.0
