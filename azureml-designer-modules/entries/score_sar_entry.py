@@ -3,6 +3,7 @@ from distutils.util import strtobool
 from enum import Enum
 from pathlib import Path
 import joblib
+import sys
 
 from azureml.studio.core.data_frame_schema import DataFrameSchema
 from azureml.studio.core.logger import module_logger as logger
@@ -33,9 +34,9 @@ def joblib_loader(load_from_dir, model_spec):
 
 
 class ScoreSARModule:
-    def __init__(self, model, input_data):
-        self._model = model
-        self._input_data = input_data
+    def __init__(self):
+        self._model = None
+        self._input_data = None
 
     @property
     def model(self):
@@ -62,54 +63,64 @@ class ScoreSARModule:
             return self.model.predict(test=self.input_data, normalize=normalize)
         raise ValueError(f"Got unexpected 'items to predict': {items_to_predict}.")
 
+    @classmethod
+    def parse_arguments(cls, *args):
+        parser = argparse.ArgumentParser()
+
+        parser.add_argument(
+            '--trained-model', help='The directory contains trained SAR model.')
+        parser.add_argument(
+            '--dataset-to-score', help='Dataset to score')
+        parser.add_argument(
+            '--score-type', type=str, help='The type of score which the recommender should output')
+        parser.add_argument(
+            '--items-to-predict', type=str, help='The set of items to predict for test users')
+        parser.add_argument(
+            '--normalize', type=str, help='Normalize predictions to scale of original ratings')
+        parser.add_argument(
+            '--ranking-metric', type=str, help='The metric of ranking used in item recommendation')
+        parser.add_argument(
+            '--top-k', type=int, help='The number of top items to recommend.')
+        parser.add_argument(
+            '--sort-top-k', type=str, help='Sort top k results.')
+        parser.add_argument(
+            '--remove-seen-items', type=str, help='Remove items seen in training from recommendation')
+        parser.add_argument(
+            '--score-result', help='Ratings or items to output')
+
+        parsed_args, _ = parser.parse_known_args(args)
+        logger.info(f"Arguments: {parsed_args}")
+
+        return parsed_args
+
+    def run(self, *args):
+        args = self.parse_arguments(*args)
+        sort_top_k = strtobool(args.sort_top_k) if args.sort_top_k else None
+        remove_seen_items = strtobool(args.remove_seen_items) if args.remove_seen_items else None
+        normalize = strtobool(args.normalize) if args.normalize else None
+
+        sar_model = load_model_from_directory(args.trained_model, model_loader=joblib_loader).data
+        dataset_to_score = load_data_frame_from_directory(args.dataset_to_score).data
+        logger.debug(f"Shape of loaded DataFrame: {dataset_to_score.shape}")
+
+        self._input_data = dataset_to_score
+        self._model = sar_model
+
+        score_type = ScoreType(args.score_type)
+        if score_type == ScoreType.ITEM_RECOMMENDATION:
+            score_result = self.recommend_items(ranking_metric=RankingMetric(args.ranking_metric),
+                                                top_k=args.top_k, sort_top_k=sort_top_k,
+                                                remove_seen=remove_seen_items, normalize=normalize)
+        elif score_type == ScoreType.RATING_PREDICTION:
+            score_result = self.predict_ratings(items_to_predict=ItemSet(args.items_to_predict), normalize=normalize)
+        else:
+            raise ValueError(f"Got unexpected score type: {score_type}.")
+
+        save_data_frame_to_directory(args.score_result, data=score_result,
+                                     schema=DataFrameSchema.data_frame_to_dict(score_result))
+        return score_result
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    ScoreSARModule().run(*sys.argv[1:])
 
-    parser.add_argument(
-        '--trained-model', help='The directory contains trained SAR model.')
-    parser.add_argument(
-        '--dataset-to-score', help='Dataset to score')
-    parser.add_argument(
-        '--score-type', type=str, help='The type of score which the recommender should output')
-    parser.add_argument(
-        '--items-to-predict', type=str, help='The set of items to predict for test users')
-    parser.add_argument(
-        '--normalize', type=str, help='Normalize predictions to scale of original ratings')
-    parser.add_argument(
-        '--ranking-metric', type=str, help='The metric of ranking used in item recommendation')
-    parser.add_argument(
-        '--top-k', type=int, help='The number of top items to recommend.')
-    parser.add_argument(
-        '--sort-top-k', type=str, help='Sort top k results.')
-    parser.add_argument(
-        '--remove-seen-items', type=str, help='Remove items seen in training from recommendation')
-    parser.add_argument(
-        '--score-result', help='Ratings or items to output')
-
-    args, _ = parser.parse_known_args()
-
-    logger.info(f"Arguments: {args}")
-    sort_top_k = strtobool(args.sort_top_k) if args.sort_top_k else None
-    remove_seen_items = strtobool(args.remove_seen_items) if args.remove_seen_items else None
-    normalize = strtobool(args.normalize) if args.normalize else None
-
-    sar_model = load_model_from_directory(args.trained_model, model_loader=joblib_loader).data
-    dataset_to_score = load_data_frame_from_directory(args.dataset_to_score).data
-    logger.debug(f"Shape of loaded DataFrame: {dataset_to_score.shape}")
-
-    score_sar_module = ScoreSARModule(model=sar_model, input_data=dataset_to_score)
-
-    score_type = ScoreType(args.score_type)
-    if score_type == ScoreType.ITEM_RECOMMENDATION:
-        score_result = score_sar_module.recommend_items(ranking_metric=RankingMetric(args.ranking_metric),
-                                                        top_k=args.top_k, sort_top_k=sort_top_k,
-                                                        remove_seen=args.remove_seen_items, normalize=normalize)
-    elif score_type == ScoreType.RATING_PREDICTION:
-        score_result = score_sar_module.predict_ratings(items_to_predict=ItemSet(args.items_to_predict),
-                                                        normalize=normalize)
-    else:
-        raise ValueError(f"Got unexpected score type: {score_type}.")
-
-    save_data_frame_to_directory(args.score_result, data=score_result,
-                                 schema=DataFrameSchema.data_frame_to_dict(score_result))
