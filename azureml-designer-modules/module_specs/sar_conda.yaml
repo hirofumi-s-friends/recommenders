@@ -9,4 +9,4 @@ dependencies:
   - azureml-designer-classic-modules==0.0.110
   - joblib==0.14.0
   - scikit-learn==0.20.3
-  - git+https://github.com/hirofumi-s-friends/recommenders.git@91c65d52f66e963c2491559be3de35660bed6d88
+  - git+https://github.com/hirofumi-s-friends/recommenders.git@weda/sar_ds
