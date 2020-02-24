@@ -1,5 +1,5 @@
 name: SAR Score
-version: 0.0.1
+version: 0.1.31
 category: Experimentation
 description: |
     Python SAR Recommender
@@ -59,7 +59,7 @@ outputs:
 implementation:
   container:
     conda: sar_conda.yaml
-    entry: azureml-designer-modules/entries/score_sar_entry.py
+    entry: azureml-designer-modules/sar/score_sar_entry.py
     args: [
       --trained-model, {inputPath: Trained model},
       --dataset-to-score, {inputPath: Dataset to score},
@@ -72,3 +72,7 @@ implementation:
       --remove-seen-items, {inputValue: Remove seen items},
       --score-result, {outputPath: Score result},
     ]
+  invoking:
+    module: sar.score_sar_entry
+    class: ScoreSARModule
+    func: run

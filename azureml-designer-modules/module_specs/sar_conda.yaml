@@ -4,6 +4,11 @@ channels:
 dependencies:
 - python=3.7
 - pip:
-  - azureml-designer-core==0.0.26.*
-  - joblib==0.14.0
+  - azureml-designer-core==0.0.28.*
+  - azureml-defaults==1.0.83
+  - azureml-contrib-services==1.0.83
+  - azureml-designer-classic-modules==0.0.110
   - scikit-learn==0.20.3
+  - git+https://github.com/hirofumi-s-friends/recommenders.git@weda/sar_ds_old
+  - git+https://github.com/hirofumi-s-friends/recommenders.git@weda/sar_ds_old#subdirectory=azureml-designer-modules
+
