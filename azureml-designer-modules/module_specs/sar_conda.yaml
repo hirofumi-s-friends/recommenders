@@ -11,4 +11,3 @@ dependencies:
   - scikit-learn==0.20.3
   - git+https://github.com/hirofumi-s-friends/recommenders.git@weda/sar_ds_old
   - git+https://github.com/hirofumi-s-friends/recommenders.git@weda/sar_ds_old#subdirectory=azureml-designer-modules
-

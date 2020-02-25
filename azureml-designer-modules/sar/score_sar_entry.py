@@ -46,11 +46,6 @@ class ScoreSARModule:
     def run(self, dataset_to_score, param_dict=None):
         logger.info(f"Runtime dict: {param_dict}")
 
-        # Dynamic params
-        if param_dict:
-            if param_dict.get("Top k"):
-                self.top_k = param_dict.get("Top k")
-
         score_type = ScoreType(self.score_type)
         if score_type == ScoreType.ITEM_RECOMMENDATION:
             scored_result = self.recommend_items(input_data=dataset_to_score,
