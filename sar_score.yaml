@@ -43,7 +43,7 @@ inputs:
   description: Flag to remove items seen in training from recommendation
   default: false
 - name: Top k
-  type: Int
+  type: Integer
   default: 10
   description: The number of top items to recommend.
   min: 1
