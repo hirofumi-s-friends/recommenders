@@ -1,6 +1,6 @@
 moduleIdentifier: 
   namespace: microsoft.com/cat
-  moduleName: SAR Score
+  moduleName: SAR Scoring
   moduleVersion: 1.1.0
 description: |
     Python SAR Recommenders
